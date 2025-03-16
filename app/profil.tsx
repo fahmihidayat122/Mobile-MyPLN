@@ -1,9 +1,42 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker'; // untuk memilih gambar
 
 export default function ProfilScreen() {
-    const navigation = useNavigation();
+  const [imageUri, setImageUri] = useState(null);
+  const [fullName, setFullName] = useState('Person');
+  const [email, setEmail] = useState('blabla@gmail.com');
+  const [whatsapp, setWhatsapp] = useState('083752135866');
+  const [password, setPassword] = useState('**********');
+  
+  const navigation = useNavigation();
+
+  const handleImagePick = async () => {
+    // Meminta izin akses galeri
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status === 'granted') {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.cancelled) {
+        setImageUri(result.uri);
+      }
+    } else {
+      Alert.alert('Izin ditolak', 'Anda perlu memberikan izin untuk mengakses galeri.');
+    }
+  };
+
+  const handleEditProfile = () => {
+    // Fitur edit profil (bisa mengarah ke halaman edit yang lebih kompleks)
+    Alert.alert('Edit Profil', 'Fitur ini akan mengarah ke halaman untuk mengedit profil.');
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -12,33 +45,51 @@ export default function ProfilScreen() {
         <Text style={styles.headerText}>Person</Text>
       </View>
 
-      {/* Profil Info */}
+      {/* Foto Profil */}
+      <TouchableOpacity onPress={handleImagePick} style={styles.profileImageContainer}>
+        {imageUri ? (
+          <Image source={{ uri: imageUri }} style={styles.profileImage} />
+        ) : (
+          <FontAwesome name="camera" size={50} color="#6DD5FA" />
+        )}
+      </TouchableOpacity>
+
+      {/* Info Profil */}
       <View style={styles.profileInfo}>
         <Text style={styles.label}>Nama Lengkap</Text>
-        <Text style={styles.input}>Person</Text>
+        <TextInput
+          style={styles.input}
+          value={fullName}
+          onChangeText={setFullName}
+        />
 
         <Text style={styles.label}>Email</Text>
-        <Text style={styles.input}>blabla@gmail.com</Text>
+        <TextInput
+          style={styles.input}
+          value={email}
+          onChangeText={setEmail}
+        />
 
         <Text style={styles.label}>Password</Text>
-        <Text style={styles.input}>**********</Text>
+        <TextInput
+          style={styles.input}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
 
         <Text style={styles.label}>Nomor WhatsApp</Text>
-        <Text style={styles.input}>083752135866</Text>
+        <TextInput
+          style={styles.input}
+          value={whatsapp}
+          onChangeText={setWhatsapp}
+        />
       </View>
 
-      {/* Bottom Navigation Bar */}
-      {/* <View style={styles.bottomNav}>
-        <TouchableOpacity>
-          <FontAwesome name="home" size={30} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <FontAwesome name="phone" size={30} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <FontAwesome name="user-circle" size={30} color="black" />
-        </TouchableOpacity>
-      </View> */}
+      {/* Tombol Edit Profil */}
+      <TouchableOpacity style={styles.button} onPress={handleEditProfile}>
+        <Text style={styles.buttonText}>Edit Profil</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -63,6 +114,21 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginLeft: 10,
+  },
+  profileImageContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 50,
+    width: 100,
+    height: 100,
+    backgroundColor: '#e0f7fa',
+    marginBottom: 20,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
   },
   profileInfo: {
     width: '90%',
@@ -100,14 +166,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    backgroundColor: '#6DD5FA',
-    padding: 15,
-    position: 'absolute',
-    bottom: 0,
   },
 });

@@ -23,9 +23,6 @@ export default function GangguanScreen() {
         <Text style={styles.label}>Waktu</Text>
         <TextInput style={styles.input} placeholder="Enter time" />
 
-        <Text style={styles.label}>Wilayah Pemeliharaan</Text>
-        <TextInput style={styles.tabel} placeholder="Enter area" />
-
         <Text style={styles.label}>Informasi Gangguan</Text>
         <TextInput style={styles.tabel} placeholder="Enter work description" />
 
