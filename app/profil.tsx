@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker'; // untuk memilih gambar
+import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfilScreen() {
   const [imageUri, setImageUri] = useState(null);
@@ -10,11 +11,10 @@ export default function ProfilScreen() {
   const [email, setEmail] = useState('blabla@gmail.com');
   const [whatsapp, setWhatsapp] = useState('083752135866');
   const [password, setPassword] = useState('**********');
-  
+
   const navigation = useNavigation();
 
   const handleImagePick = async () => {
-    // Meminta izin akses galeri
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status === 'granted') {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -33,19 +33,22 @@ export default function ProfilScreen() {
   };
 
   const handleEditProfile = () => {
-    // Fitur edit profil (bisa mengarah ke halaman edit yang lebih kompleks)
     Alert.alert('Edit Profil', 'Fitur ini akan mengarah ke halaman untuk mengedit profil.');
+  };
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('userToken'); // Hapus token dari AsyncStorage
+    Alert.alert('Logout Berhasil', 'Anda telah keluar.');
+    navigation.replace('login'); // Arahkan kembali ke halaman login
   };
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <FontAwesome name="user-circle" size={30} color="white" />
         <Text style={styles.headerText}>Person</Text>
       </View>
 
-      {/* Foto Profil */}
       <TouchableOpacity onPress={handleImagePick} style={styles.profileImageContainer}>
         {imageUri ? (
           <Image source={{ uri: imageUri }} style={styles.profileImage} />
@@ -54,41 +57,27 @@ export default function ProfilScreen() {
         )}
       </TouchableOpacity>
 
-      {/* Info Profil */}
       <View style={styles.profileInfo}>
         <Text style={styles.label}>Nama Lengkap</Text>
-        <TextInput
-          style={styles.input}
-          value={fullName}
-          onChangeText={setFullName}
-        />
+        <TextInput style={styles.input} value={fullName} onChangeText={setFullName} />
 
         <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-        />
+        <TextInput style={styles.input} value={email} onChangeText={setEmail} />
 
         <Text style={styles.label}>Password</Text>
-        <TextInput
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry />
 
         <Text style={styles.label}>Nomor WhatsApp</Text>
-        <TextInput
-          style={styles.input}
-          value={whatsapp}
-          onChangeText={setWhatsapp}
-        />
+        <TextInput style={styles.input} value={whatsapp} onChangeText={setWhatsapp} />
       </View>
 
-      {/* Tombol Edit Profil */}
       <TouchableOpacity style={styles.button} onPress={handleEditProfile}>
         <Text style={styles.buttonText}>Edit Profil</Text>
+      </TouchableOpacity>
+
+      {/* Tombol Logout */}
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
     </View>
   );
@@ -163,6 +152,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  logoutButton: {
+    backgroundColor: '#FF4C4C',
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    borderRadius: 25,
+    marginTop: 20,
+    width: '90%',
+    alignItems: 'center',
+  },
+  logoutButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',

@@ -1,37 +1,81 @@
-import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, ImageBackground, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
-  
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Email dan password harus diisi!');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('http://192.168.167.212:8000/api/user/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await AsyncStorage.setItem('token', data.token); // Simpan token
+        Alert.alert('Success', 'Login berhasil!');
+        navigation.replace('dashboard'); // Redirect ke dashboard
+      } else {
+        Alert.alert('Error', data.message || 'Login gagal!');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Terjadi kesalahan. Coba lagi!');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ImageBackground source={require('../assets/images/backgorund2.jpg')} style={styles.background}>
       <View style={styles.container}>
         {/* Logo PLN */}
-        <Image 
-          source={require('../assets/images/plnn.png')} 
-          style={styles.logo} 
-          resizeMode="contain"
-        />
+        <Image source={require('../assets/images/plnn.png')} style={styles.logo} resizeMode="contain" />
 
         {/* Input Email */}
         <Text style={styles.label}>EMAIL ADDRESS</Text>
         <View style={styles.inputContainer}>
           <FontAwesome name="envelope" size={20} color="black" style={styles.icon} />
-          <TextInput placeholder="Enter your email address" style={styles.input} keyboardType="email-address" />
+          <TextInput
+            placeholder="Enter your email address"
+            style={styles.input}
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+          />
         </View>
 
         {/* Input Password */}
         <Text style={styles.label}>PASSWORD</Text>
         <View style={styles.inputContainer}>
           <FontAwesome name="lock" size={20} color="black" style={styles.icon} />
-          <TextInput placeholder="Enter your password" style={styles.input} secureTextEntry />
+          <TextInput
+            placeholder="Enter your password"
+            style={styles.input}
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
         </View>
 
         {/* Forgot Password */}
@@ -40,8 +84,8 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         {/* Tombol Login */}
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('dashboard')}>
-          <Text style={styles.buttonText}>LOGIN</Text>
+        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? 'Logging in...' : 'LOGIN'}</Text>
         </TouchableOpacity>
       </View>
     </ImageBackground>
@@ -49,30 +93,16 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    resizeMode: 'cover', // Menjadikan gambar mengisi layar sepenuhnya
-  },
+  background: { flex: 1, resizeMode: 'cover' },
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Menambahkan overlay transparan di atas gambar
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     paddingHorizontal: 20,
   },
-  logo: {
-    width: 120,
-    height: 120,
-    marginBottom: 20,
-  },
-  label: {
-    alignSelf: 'flex-start',
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginTop: 10,
-    marginBottom: 5,
-    color: '#fff', // Ubah warna teks menjadi putih agar kontras
-  },
+  logo: { width: 120, height: 120, marginBottom: 20 },
+  label: { alignSelf: 'flex-start', fontSize: 14, fontWeight: 'bold', marginTop: 10, marginBottom: 5, color: '#fff' },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -83,31 +113,9 @@ const styles = StyleSheet.create({
     height: 45,
     marginBottom: 10,
   },
-  icon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    color: 'white', // Ubah warna teks menjadi putih untuk keterbacaan
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: '#6DD5FA',
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 25,
-    width: '100%',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  icon: { marginRight: 10 },
+  input: { flex: 1, fontSize: 16 },
+  forgotPassword: { alignSelf: 'flex-end', color: 'white', fontSize: 12, fontWeight: 'bold', marginBottom: 20 },
+  button: { backgroundColor: '#6DD5FA', paddingVertical: 12, paddingHorizontal: 40, borderRadius: 25, width: '100%', alignItems: 'center' },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });

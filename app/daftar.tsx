@@ -1,55 +1,100 @@
-import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, ImageBackground } from 'react-native'; 
+import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, ImageBackground, Alert, ActivityIndicator } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Daftar() {
   const navigation = useNavigation();
+
+  // State untuk inputan
+  const [namaLengkap, setNamaLengkap] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [noHp, setNoHp] = useState('');
+  const [loading, setLoading] = useState(false); // Untuk indikator loading
+
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
+
+  // Fungsi untuk menangani pendaftaran
+  const handleRegister = async () => {
+    if (!namaLengkap || !email || !password || !noHp) {
+      Alert.alert('Error', 'Semua kolom harus diisi!');
+      return;
+    }
+
+    setLoading(true); // Mulai loading
+
+    try {
+      const response = await fetch('http://192.168.167.212:8000/api/user/register', {  // Ganti dengan URL API-mu
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nama_lengkap: namaLengkap,
+          email: email,
+          password: password,
+          no_hp: noHp,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await AsyncStorage.setItem('userToken', data.token); // Simpan token ke AsyncStorage
+        Alert.alert('Sukses', 'Registrasi berhasil!');
+        navigation.navigate('login'); // Redirect ke dashboard
+      } else {
+        Alert.alert('Error', data.message || 'Registrasi gagal');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      Alert.alert('Error', 'Terjadi kesalahan, coba lagi nanti.');
+    }
+
+    setLoading(false); // Selesai loading
+  };
 
   return (
     <ImageBackground source={require('../assets/images/backgorund2.jpg')} style={styles.background}>
       <View style={styles.container}>
         {/* Logo PLN */}
-        <Image 
-          source={require('../assets/images/plnn.png')} 
-          style={styles.logo} 
-          resizeMode="contain"
-        />
+        <Image source={require('../assets/images/plnn.png')} style={styles.logo} resizeMode="contain" />
 
         {/* Input Nama */}
         <Text style={styles.label}>NAMA LENGKAP</Text>
         <View style={styles.inputContainer}>
           <FontAwesome name="user" size={20} color="black" style={styles.icon} />
-          <TextInput placeholder="Enter your name" style={styles.input} />
+          <TextInput placeholder="Enter your name" style={styles.input} value={namaLengkap} onChangeText={setNamaLengkap} />
         </View>
 
         {/* Input Email */}
         <Text style={styles.label}>EMAIL ADDRESS</Text>
         <View style={styles.inputContainer}>
           <FontAwesome name="envelope" size={20} color="black" style={styles.icon} />
-          <TextInput placeholder="Enter your email address" style={styles.input} keyboardType="email-address" />
+          <TextInput placeholder="Enter your email address" style={styles.input} keyboardType="email-address" value={email} onChangeText={setEmail} />
         </View>
 
         {/* Input Password */}
         <Text style={styles.label}>PASSWORD</Text>
         <View style={styles.inputContainer}>
           <FontAwesome name="lock" size={20} color="black" style={styles.icon} />
-          <TextInput placeholder="Enter your password" style={styles.input} secureTextEntry />
+          <TextInput placeholder="Enter your password" style={styles.input} secureTextEntry value={password} onChangeText={setPassword} />
         </View>
 
         {/* Input Nomor Telepon/WhatsApp */}
         <Text style={styles.label}>NO. TLP/ WHATSAPP</Text>
         <View style={styles.inputContainer}>
           <FontAwesome name="phone" size={20} color="black" style={styles.icon} />
-          <TextInput placeholder="Enter your nomor" style={styles.input} keyboardType="phone-pad" />
+          <TextInput placeholder="Enter your nomor" style={styles.input} keyboardType="phone-pad" value={noHp} onChangeText={setNoHp} />
         </View>
 
         {/* Tombol Daftar */}
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('dashboard')}>
-          <Text style={styles.buttonText}>DAFTAR</Text>
+        <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>DAFTAR</Text>}
         </TouchableOpacity>
       </View>
     </ImageBackground>
@@ -59,13 +104,13 @@ export default function Daftar() {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    resizeMode: 'cover', // Menjadikan gambar mengisi layar sepenuhnya
+    resizeMode: 'cover',
   },
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Menambahkan overlay transparan di atas gambar
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     paddingHorizontal: 20,
   },
   logo: {
@@ -79,7 +124,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 10,
     marginBottom: 5,
-    color: '#fff', // Ubah warna teks menjadi putih agar kontras
+    color: '#fff',
   },
   inputContainer: {
     flexDirection: 'row',
