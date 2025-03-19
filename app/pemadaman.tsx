@@ -5,7 +5,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FontAwesome } from "@expo/vector-icons";
 
-export default function PemadamanScreen({ navigation }) {
+export default function PemadamanScreen({ }) {
   const [pemadaman, setPemadaman] = useState([]);
   const [loading, setLoading] = useState(true);
 
