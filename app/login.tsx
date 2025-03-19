@@ -33,9 +33,13 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        await AsyncStorage.setItem('token', data.token); // Simpan token
-        Alert.alert('Success', 'Login berhasil!');
-        navigation.replace('dashboard'); // Redirect ke dashboard
+        if (data.token) {
+          await AsyncStorage.setItem('auth_token', data.token); // Simpan token dengan kunci "auth_token"
+          Alert.alert('Success', 'Login berhasil!');
+          navigation.replace('dashboard'); // Redirect ke dashboard
+        } else {
+          Alert.alert('Error', 'Token tidak ditemukan dalam respons!');
+        }
       } else {
         Alert.alert('Error', data.message || 'Login gagal!');
       }
@@ -45,6 +49,7 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
+
 
   return (
     <ImageBackground source={require('../assets/images/backgorund2.jpg')} style={styles.background}>

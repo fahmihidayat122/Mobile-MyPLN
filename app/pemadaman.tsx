@@ -1,47 +1,87 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import { FontAwesome5, FontAwesome } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from "react";
+import {
+  View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { FontAwesome } from "@expo/vector-icons";
 
-export default function PemadamanScreen() {
-  const navigation = useNavigation();
+export default function PemadamanScreen({ navigation }) {
+  const [pemadaman, setPemadaman] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPemadaman();
+  }, []);
+
+  const fetchPemadaman = async () => {
+    try {
+      const token = await AsyncStorage.getItem("auth_token");
+      if (!token) {
+        console.error("Token tidak ditemukan");
+        return;
+      }
+
+      const response = await fetch("http://192.168.167.212:8000/api/user/informasi-pemadaman", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json"
+        }
+      });
+
+      const json = await response.json();
+      console.log("Response API:", json);
+
+      if (json.success) {
+        setPemadaman(json.data);
+      } else {
+        console.error("Gagal mengambil data pemadaman:", json.message);
+      }
+    } catch (error) {
+      console.error("Error fetching pemadaman:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <FontAwesome5 name="lightbulb" size={24} color="white" />
+        <FontAwesome name="lightbulb-o" size={24} color="white" />
         <Text style={styles.headerText}>Informasi Pemadaman</Text>
       </View>
 
-      {/* Info Pemadaman */}
-      <ScrollView style={styles.infoContainer}>
-        <Text style={styles.infoText}>PT PLN (PERSERO) UP3 MADURA ULP PAMEKASAN</Text>
+      {/* Content */}
+      {loading ? (
+        <ActivityIndicator size="large" color="#0097e6" style={styles.loader} />
+      ) : pemadaman.length === 0 ? (
+        <Text style={styles.emptyText}>Tidak ada informasi pemadaman.</Text>
+      ) : (
+        <FlatList
+          data={pemadaman}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>PT PLN (PERSERO) UP3 MADURA</Text>
+              <Text style={styles.cardSubtitle}>ULP PAMEKASAN</Text>
+              <View style={styles.cardContent}>
+                <Text style={styles.label}>Hari/Tanggal</Text>
+                <Text style={styles.input}>{item.hari_tanggal}</Text>
 
-        {/* Form Input */}
-        <Text style={styles.label}>Hari/ Tanggal</Text>
-        <TextInput style={styles.input} placeholder="Enter date" />
+                <Text style={styles.label}>Waktu</Text>
+                <Text style={styles.input}>{item.waktu_mulai} - {item.waktu_selesai}</Text>
 
-        <Text style={styles.label}>Waktu</Text>
-        <TextInput style={styles.input} placeholder="Enter time" />
+                <Text style={styles.label}>Wilayah Pemeliharaan</Text>
+                <Text style={styles.input}>{item.lokasi_pemeliharaan}</Text>
 
-        <Text style={styles.label}>Wilayah Pemeliharaan</Text>
-        <TextInput style={styles.tabel} placeholder="Enter area" />
-
-        <Text style={styles.label}>Pekerjaan</Text>
-        <TextInput style={styles.tabel} placeholder="Enter work description" />
-      </ScrollView>
-
-      {/* Bottom Navigation Bar */}
-      {/* <View style={styles.bottomNav}>
-        <TouchableOpacity>
-          <FontAwesome name="home" size={30} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <FontAwesome name="phone" size={30} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <FontAwesome name="user-circle" size={30} color="black" />
-        </TouchableOpacity>
-      </View> */}
+                <Text style={styles.label}>Pekerjaan</Text>
+                <Text style={styles.input}>{item.pekerjaan}</Text>
+              </View>
+            </View>
+          )}
+        />
+      )}
     </View>
   );
 }
@@ -49,70 +89,76 @@ export default function PemadamanScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
+    backgroundColor: "#f8f9fa",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#6DD5FA',
-    width: '100%',
-    padding: 15,
-    paddingTop: 40,
+    backgroundColor: "#00c4ff",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 15,
   },
   headerText: {
-    color: 'white',
     fontSize: 18,
-    fontWeight: 'bold',
-    marginLeft: 10,
+    fontWeight: "bold",
+    color: "white",
+    marginLeft: 8,
   },
-  infoContainer: {
-    width: '90%',
-    padding: 20,
-    backgroundColor: '#d3d3d3',
-    borderRadius: 15,
+  loader: {
     marginTop: 20,
   },
-  infoText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: 'black',
-    textAlign: 'center',
+  emptyText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#777",
+    marginTop: 20,
+  },
+  card: {
+    backgroundColor: "#fff",
+    padding: 16,
+    margin: 12,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#0097e6",
+    textAlign: "center",
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#0097e6",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  cardContent: {
+    marginTop: 8,
   },
   label: {
     fontSize: 14,
-    fontWeight: 'bold',
-    marginVertical: 5,
-  },
-  tabel: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 10,
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    textAlign: 'left',
-    height: 100,
+    fontWeight: "bold",
+    color: "#333",
+    marginTop: 8,
   },
   input: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 10,
+    backgroundColor: "#ddd",
+    padding: 8,
+    borderRadius: 6,
+    marginTop: 4,
     fontSize: 14,
-    borderWidth: 1,
-    borderColor: '#ccc',
   },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    backgroundColor: '#6DD5FA',
-    padding: 15,
-    position: 'absolute',
-    bottom: 0,
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    backgroundColor: "#00c4ff",
+    paddingVertical: 10,
+  },
+  footerItem: {
+    padding: 10,
   },
 });
