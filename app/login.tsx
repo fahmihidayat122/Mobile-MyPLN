@@ -84,9 +84,9 @@ export default function LoginScreen() {
         </View>
 
         {/* Forgot Password */}
-        <TouchableOpacity>
+        {/* <TouchableOpacity>
           <Text style={styles.forgotPassword}>Forgot password?</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {/* Tombol Login */}
         <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>

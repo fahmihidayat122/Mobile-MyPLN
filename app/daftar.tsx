@@ -28,10 +28,11 @@ export default function Daftar() {
     setLoading(true); // Mulai loading
 
     try {
-      const response = await fetch('http://192.168.167.212:8000/api/user/register', {  // Ganti dengan URL API-mu
+      const response = await fetch('http://192.168.114.212:8000/api/user/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({
           nama_lengkap: namaLengkap,
@@ -42,11 +43,16 @@ export default function Daftar() {
       });
 
       const data = await response.json();
+      console.log('Response API:', data); // Debugging respons API
 
       if (response.ok) {
-        await AsyncStorage.setItem('userToken', data.token); // Simpan token ke AsyncStorage
-        Alert.alert('Sukses', 'Registrasi berhasil!');
-        navigation.navigate('login'); // Redirect ke dashboard
+        if (data.token) {
+          await AsyncStorage.setItem('userToken', data.token);
+          Alert.alert('Sukses', 'Registrasi berhasil!');
+          navigation.navigate('login');
+        } else {
+          Alert.alert('Error', 'Registrasi berhasil, tetapi token tidak ditemukan.');
+        }
       } else {
         Alert.alert('Error', data.message || 'Registrasi gagal');
       }
@@ -57,6 +63,8 @@ export default function Daftar() {
 
     setLoading(false); // Selesai loading
   };
+
+
 
   return (
     <ImageBackground source={require('../assets/images/backgorund2.jpg')} style={styles.background}>
