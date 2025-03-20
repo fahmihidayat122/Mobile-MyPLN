@@ -1,79 +1,80 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfilScreen() {
-  const [imageUri, setImageUri] = useState(null);
-  const [fullName, setFullName] = useState('Person');
-  const [email, setEmail] = useState('blabla@gmail.com');
-  const [whatsapp, setWhatsapp] = useState('083752135866');
-  const [password, setPassword] = useState('**********');
-
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
-  const handleImagePick = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status === 'granted') {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      const userId = await AsyncStorage.getItem('user_id');
+
+      if (!token || !userId) {
+        Alert.alert('Error', 'Token atau user ID tidak ditemukan');
+        return;
+      }
+
+      const response = await fetch(`http://192.168.114.212:8000/api/user/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
       });
 
-      if (!result.cancelled) {
-        setImageUri(result.uri);
+      const json = await response.json();
+      if (json.success) {
+        setUserData(json.data);
+      } else {
+        Alert.alert('Gagal', json.message);
       }
-    } else {
-      Alert.alert('Izin ditolak', 'Anda perlu memberikan izin untuk mengakses galeri.');
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      Alert.alert('Error', 'Gagal mengambil data, coba lagi nanti.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleEditProfile = () => {
-    Alert.alert('Edit Profil', 'Fitur ini akan mengarah ke halaman untuk mengedit profil.');
-  };
-
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('userToken'); // Hapus token dari AsyncStorage
+    await AsyncStorage.removeItem('auth_token');
+    await AsyncStorage.removeItem('user_id');
     Alert.alert('Logout Berhasil', 'Anda telah keluar.');
-    navigation.replace('login'); // Arahkan kembali ke halaman login
+    navigation.replace('login');
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <FontAwesome name="user-circle" size={30} color="white" />
-        <Text style={styles.headerText}>Person</Text>
+        <Text style={styles.headerText}>Profil</Text>
       </View>
 
-      <TouchableOpacity onPress={handleImagePick} style={styles.profileImageContainer}>
-        {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.profileImage} />
-        ) : (
-          <FontAwesome name="camera" size={50} color="#6DD5FA" />
-        )}
-      </TouchableOpacity>
+      {loading ? (
+        <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 20 }} />
+      ) : userData ? (
+        <View style={styles.profileInfo}>
+          <Text style={styles.label}>Nama Lengkap</Text>
+          <TextInput style={styles.input} value={userData.nama_lengkap} editable={false} />
 
-      <View style={styles.profileInfo}>
-        <Text style={styles.label}>Nama Lengkap</Text>
-        <TextInput style={styles.input} value={fullName} onChangeText={setFullName} />
+          <Text style={styles.label}>Email</Text>
+          <TextInput style={styles.input} value={userData.email} editable={false} />
 
-        <Text style={styles.label}>Email</Text>
-        <TextInput style={styles.input} value={email} onChangeText={setEmail} />
-
-        <Text style={styles.label}>Password</Text>
-        <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry />
-
-        <Text style={styles.label}>Nomor WhatsApp</Text>
-        <TextInput style={styles.input} value={whatsapp} onChangeText={setWhatsapp} />
-      </View>
-
-      <TouchableOpacity style={styles.button} onPress={handleEditProfile}>
-        <Text style={styles.buttonText}>Edit Profil</Text>
-      </TouchableOpacity>
+          <Text style={styles.label}>Nomor HP</Text>
+          <TextInput style={styles.input} value={userData.no_hp} editable={false} />
+        </View>
+      ) : (
+        <Text style={styles.errorText}>Gagal mengambil data profil.</Text>
+      )}
 
       {/* Tombol Logout */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -104,21 +105,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 10,
   },
-  profileImageContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 50,
-    width: 100,
-    height: 100,
-    backgroundColor: '#e0f7fa',
-    marginBottom: 20,
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-  },
   profileInfo: {
     width: '90%',
     backgroundColor: '#fff',
@@ -142,20 +128,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#e0f7fa',
   },
-  button: {
-    backgroundColor: '#6DD5FA',
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 25,
-    marginTop: 20,
-    width: '90%',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
   logoutButton: {
     backgroundColor: '#FF4C4C',
     paddingVertical: 12,
@@ -169,5 +141,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    marginTop: 20,
   },
 });

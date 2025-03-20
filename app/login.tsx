@@ -31,20 +31,24 @@ export default function LoginScreen() {
       });
 
       const data = await response.json();
+      console.log('Response dari server:', data); // Debugging
 
-      if (response.ok) {
-        if (data.token) {
-          await AsyncStorage.setItem('auth_token', data.token); // Simpan token dengan kunci "auth_token"
-          Alert.alert('Success', 'Login berhasil!');
-          navigation.replace('dashboard'); // Redirect ke dashboard
-        } else {
-          Alert.alert('Error', 'Token tidak ditemukan dalam respons!');
-        }
+      if (!response.ok) {
+        throw new Error(data.message || 'Login gagal! Periksa email dan password.');
+      }
+
+      if (data.token && data.user) {
+        await AsyncStorage.setItem('auth_token', data.token);
+        await AsyncStorage.setItem('user_id', data.user.id.toString()); // Simpan user ID
+
+        Alert.alert('Success', 'Login berhasil!');
+        navigation.replace('dashboard'); // Redirect ke dashboard
       } else {
-        Alert.alert('Error', data.message || 'Login gagal!');
+        throw new Error('Token atau user ID tidak ditemukan dalam respons!');
       }
     } catch (error) {
-      Alert.alert('Error', 'Terjadi kesalahan. Coba lagi!');
+      console.error('Error saat login:', error); // Debugging
+      Alert.alert('Error', error.message);
     } finally {
       setLoading(false);
     }
