@@ -24,7 +24,7 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://192.168.114.212:8000/api/user/login', {
+      const response = await fetch('http://192.168.1.21:8000/api/user/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -53,7 +53,6 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
-
 
   return (
     <ImageBackground source={require('../assets/images/backgorund2.jpg')} style={styles.background}>
@@ -88,9 +87,9 @@ export default function LoginScreen() {
         </View>
 
         {/* Forgot Password */}
-        {/* <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('password')}>
           <Text style={styles.forgotPassword}>Forgot password?</Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
 
         {/* Tombol Login */}
         <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
@@ -124,7 +123,21 @@ const styles = StyleSheet.create({
   },
   icon: { marginRight: 10 },
   input: { flex: 1, fontSize: 16 },
-  forgotPassword: { alignSelf: 'flex-end', color: 'white', fontSize: 12, fontWeight: 'bold', marginBottom: 20 },
-  button: { backgroundColor: '#6DD5FA', paddingVertical: 12, paddingHorizontal: 40, borderRadius: 25, width: '100%', alignItems: 'center' },
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textDecorationLine: 'underline',
+  },
+  button: {
+    backgroundColor: '#6DD5FA',
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    borderRadius: 25,
+    width: '100%',
+    alignItems: 'center',
+  },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });

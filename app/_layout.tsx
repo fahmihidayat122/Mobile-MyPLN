@@ -21,6 +21,7 @@ export default function RootLayout() {
       <Stack.Screen name="laporan" />
       <Stack.Screen name="profil" />
       <Stack.Screen name="kontak" />
+      <Stack.Screen name="password" />
     </Stack>
   );
 }

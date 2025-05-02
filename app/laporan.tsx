@@ -21,7 +21,7 @@ export default function LaporanGangguanScreen() {
     };
 
     try {
-      let response = await fetch("http://192.168.114.212:8000/api/user/laporan-gangguan", {
+      let response = await fetch("http://192.168.1.21:8000/api/user/laporan-gangguan", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
