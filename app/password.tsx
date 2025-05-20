@@ -1,24 +1,53 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ImageBackground, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 
 export default function PasswordScreen() {
+  const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!email || !newPassword || !confirmPassword) {
       Alert.alert('Error', 'Semua kolom harus diisi!');
       return;
     }
+
     if (newPassword !== confirmPassword) {
       Alert.alert('Error', 'Kata sandi tidak cocok!');
       return;
     }
-    Alert.alert('Sukses', 'Kata sandi berhasil diubah.');
+
+    try {
+      const response = await fetch('http://192.168.84.1:8000/api/user/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: newPassword,
+          password_confirmation: confirmPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Sukses', data.message);
+        navigation.replace('login'); // Redirect ke halaman login setelah sukses
+      } else {
+        const errors = data.errors || {};
+        Alert.alert('Gagal', Object.values(errors).join('\n'));
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Terjadi kesalahan saat menghubungi server');
+    }
   };
+
 
   return (
     <ImageBackground source={require('../assets/images/backgorund2.jpg')} style={styles.background}>
