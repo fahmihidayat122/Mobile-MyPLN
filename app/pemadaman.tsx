@@ -21,7 +21,7 @@ export default function PemadamanScreen({ }) {
         return;
       }
 
-      const response = await fetch("http://192.168.84.1:8000/api/user/informasi-pemadaman", {
+      const response = await fetch("http://192.168.96.1:8000/api/user/informasi-pemadaman", {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,

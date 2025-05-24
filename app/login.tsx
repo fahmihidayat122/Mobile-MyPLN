@@ -24,7 +24,7 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://192.168.84.1:8000/api/user/login', {
+      const response = await fetch('http://192.168.96.1:8000/api/user/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

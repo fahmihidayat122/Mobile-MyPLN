@@ -23,7 +23,7 @@ export default function ProfilScreen() {
         return;
       }
 
-      const response = await fetch(`http://192.168.84.1:8000/api/user/${userId}`, {
+      const response = await fetch(`http://192.168.96.1:8000/api/user/${userId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

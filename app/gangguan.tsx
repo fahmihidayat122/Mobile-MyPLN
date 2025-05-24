@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import {
-  View, Text, StyleSheet, FlatList, ActivityIndicator
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FontAwesome5 } from "@expo/vector-icons";
@@ -21,13 +25,16 @@ export default function GangguanScreen() {
         return;
       }
 
-      const response = await fetch("http://192.168.84.1:8000/api/user/informasi-gangguan", {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/json"
+      const response = await fetch(
+        "http://192.168.96.1:8000/api/user/informasi-gangguan",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
         }
-      });
+      );
 
       const json = await response.json();
       console.log("Response API:", json);
@@ -42,6 +49,50 @@ export default function GangguanScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Format status dengan pengecekan case-insensitive dan variasi spasi
+  const formatStatus = (status) => {
+    if (!status) return "Status Tidak Diketahui";
+
+    const s = status.toLowerCase().trim();
+
+    if (s === "belum diperbaiki" || s === "belum di perbaiki") {
+      return "Belum Diperbaiki";
+    }
+    if (s === "sedang diperbaiki" || s === "sedang di perbaiki") {
+      return "Sedang Diperbaiki";
+    }
+    if (
+      s === "selesai di perbaiki" ||
+      s === "sudah diperbaiki" ||
+      s === "sudah di perbaiki"
+    ) {
+      return "Sudah Diperbaiki";
+    }
+    return "Status Tidak Diketahui";
+  };
+
+  // Style warna status sesuai dengan statusnya
+  const getStatusStyle = (status) => {
+    if (!status) return { color: "gray", fontWeight: "bold" };
+
+    const s = status.toLowerCase().trim();
+
+    if (s === "belum diperbaiki" || s === "belum di perbaiki") {
+      return { color: "red", fontWeight: "bold" };
+    }
+    if (s === "sedang diperbaiki" || s === "sedang di perbaiki") {
+      return { color: "orange", fontWeight: "bold" };
+    }
+    if (
+      s === "selesai di perbaiki" ||
+      s === "sudah diperbaiki" ||
+      s === "sudah di perbaiki"
+    ) {
+      return { color: "green", fontWeight: "bold" };
+    }
+    return { color: "gray", fontWeight: "bold" };
   };
 
   return (
@@ -61,28 +112,36 @@ export default function GangguanScreen() {
         <FlatList
           data={gangguan}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>PT PLN (PERSERO) UP3 MADURA</Text>
-              <Text style={styles.cardSubtitle}>ULP PAMEKASAN</Text>
-              <View style={styles.cardContent}>
-                <Text style={styles.label}>Hari/Tanggal</Text>
-                <Text style={styles.input}>{item.hari_tanggal}</Text>
+          renderItem={({ item }) => {
+            console.log("Status dari backend:", item.status); // Debug status
+            return (
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>PT PLN (PERSERO) UP3 MADURA</Text>
+                <Text style={styles.cardSubtitle}>ULP PAMEKASAN</Text>
+                <View style={styles.cardContent}>
+                  <Text style={styles.label}>Hari/Tanggal</Text>
+                  <Text style={styles.input}>{item.hari_tanggal}</Text>
 
-                <Text style={styles.label}>Waktu</Text>
-                <Text style={styles.input}>{item.waktu}</Text>
+                  <Text style={styles.label}>Waktu</Text>
+                  <Text style={styles.input}>{item.waktu}</Text>
 
-                <Text style={styles.label}>Wilayah Pemeliharaan</Text>
-                <Text style={styles.input}>{item.wilayah_pemeliharaan}</Text>
+                  <Text style={styles.label}>Wilayah Pemeliharaan</Text>
+                  <Text style={styles.input}>{item.wilayah_pemeliharaan}</Text>
 
-                <Text style={styles.label}>Informasi Gangguan</Text>
-                <Text style={styles.input}>{item.informasi_gangguan}</Text>
+                  <Text style={styles.label}>Informasi Gangguan</Text>
+                  <Text style={styles.input}>{item.informasi_gangguan}</Text>
 
-                <Text style={styles.label}>Dampak Gangguan</Text>
-                <Text style={styles.input}>{item.dampak_gangguan}</Text>
+                  <Text style={styles.label}>Dampak Gangguan</Text>
+                  <Text style={styles.input}>{item.dampak_gangguan}</Text>
+
+                  <Text style={styles.label}>Status</Text>
+                  <Text style={[styles.status, getStatusStyle(item.status)]}>
+                    {formatStatus(item.status)}
+                  </Text>
+                </View>
               </View>
-            </View>
-          )}
+            );
+          }}
         />
       )}
     </View>
@@ -154,5 +213,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginTop: 4,
     fontSize: 14,
+  },
+  status: {
+    marginTop: 4,
+    fontSize: 16,
   },
 });

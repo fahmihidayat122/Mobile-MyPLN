@@ -22,7 +22,7 @@ export default function PasswordScreen() {
     }
 
     try {
-      const response = await fetch('http://192.168.84.1:8000/api/user/forgot-password', {
+      const response = await fetch('http://192.168.96.1:8000/api/user/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
