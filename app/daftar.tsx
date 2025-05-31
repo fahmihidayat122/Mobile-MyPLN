@@ -28,7 +28,7 @@ export default function Daftar() {
     setLoading(true); // Mulai loading
 
     try {
-      const response = await fetch('http://192.168.96.1:8000/api/user/register', {
+      const response = await fetch('http://192.168.1.7:8000/api/user/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

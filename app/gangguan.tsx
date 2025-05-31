@@ -26,7 +26,7 @@ export default function GangguanScreen() {
       }
 
       const response = await fetch(
-        "http://192.168.96.1:8000/api/user/informasi-gangguan",
+        "http://192.168.1.7:8000/api/user/informasi-gangguan",
         {
           method: "GET",
           headers: {
